@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector3;
 
 
 public class Drop extends ApplicationAdapter {
@@ -24,6 +25,7 @@ public class Drop extends ApplicationAdapter {
 
 	private Rectangle bucket;
 
+	private Vector3 touchPos = new Vector3();
 
 	@Override
 	public void create () {
@@ -58,7 +60,7 @@ public class Drop extends ApplicationAdapter {
 
 	@Override
 	public void render () {
-		Gdx.gl.glClearColor(0,0,0.2f,1);//dark blue
+		Gdx.gl.glClearColor(0, 0, 0.2f, 1);//dark blue
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		camera.update();
@@ -66,7 +68,13 @@ public class Drop extends ApplicationAdapter {
 		//rendering the bucket
 		batch.setProjectionMatrix(camera.combined);//use the camera's coordinate sys
 		batch.begin();//start a new batch
-			batch.draw(bucketImage,bucket.x, bucket.y);
+			batch.draw(bucketImage, bucket.x, bucket.y);
 		batch.end();//start drawing
+
+		if(Gdx.input.isTouched()){
+			touchPos.set(Gdx.input.getX(),Gdx.input.getY(),0);
+			camera.unproject(touchPos);//transform coordinates to our camera's coordinate system
+			bucket.x = touchPos.x - bucket.getWidth()/2;
+		}
 	}
 }

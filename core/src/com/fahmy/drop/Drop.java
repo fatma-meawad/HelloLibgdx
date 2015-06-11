@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Rectangle;
 
 
 public class Drop extends ApplicationAdapter {
@@ -17,7 +18,12 @@ public class Drop extends ApplicationAdapter {
 	private Music backgroundMusic;
 
 	private OrthographicCamera camera;//to render using 800x480 resolution
+	private final Integer cameraWidth = 800;
+	private final Integer cameraHeight = 480;
 	private SpriteBatch batch;//to draw 2D objects
+
+	private Rectangle bucket;
+
 
 	@Override
 	public void create () {
@@ -35,15 +41,32 @@ public class Drop extends ApplicationAdapter {
 
 		//creating the camera
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false,800,480);
+		camera.setToOrtho(false,cameraWidth,cameraHeight);
 
 		//creating the batch
 		batch = new SpriteBatch();
-		
+
+		//the bucket rectangle
+		bucket = new Rectangle();
+		bucket.x = cameraWidth/2 - bucketImage.getWidth()/2;//center the bucket
+		bucket.y = 20;//a little above the bottom edge
+		bucket.width = bucketImage.getWidth();
+		bucket.height = bucketImage.getHeight();
+
 
 	}
 
 	@Override
 	public void render () {
+		Gdx.gl.glClearColor(0,0,0.2f,1);//dark blue
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+		camera.update();
+
+		//rendering the bucket
+		batch.setProjectionMatrix(camera.combined);//use the camera's coordinate sys
+		batch.begin();//start a new batch
+			batch.draw(bucketImage,bucket.x, bucket.y);
+		batch.end();//start drawing
 	}
 }

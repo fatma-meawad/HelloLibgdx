@@ -8,8 +8,14 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.TimeUtils;
+
+import java.sql.Time;
+import java.util.Iterator;
 
 
 public class Drop extends ApplicationAdapter {
@@ -27,6 +33,9 @@ public class Drop extends ApplicationAdapter {
 
 	private Vector3 touchPos = new Vector3();
 
+	private Array<Rectangle> rainDrops;
+	private long lastDropTime;
+
 	@Override
 	public void create () {
 		//load the images of the droplet and the bucket (64x64)
@@ -43,7 +52,7 @@ public class Drop extends ApplicationAdapter {
 
 		//creating the camera
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false,cameraWidth,cameraHeight);
+		camera.setToOrtho(false, cameraWidth, cameraHeight);
 
 		//creating the batch
 		batch = new SpriteBatch();
@@ -55,6 +64,8 @@ public class Drop extends ApplicationAdapter {
 		bucket.width = bucketImage.getWidth();
 		bucket.height = bucketImage.getHeight();
 
+		rainDrops = new Array<Rectangle>();
+		spawnRainDrop();
 
 	}
 
@@ -69,6 +80,9 @@ public class Drop extends ApplicationAdapter {
 		batch.setProjectionMatrix(camera.combined);//use the camera's coordinate sys
 		batch.begin();//start a new batch
 			batch.draw(bucketImage, bucket.x, bucket.y);
+			for(Rectangle rainDrop: rainDrops){
+				batch.draw(dropImage , rainDrop.x , rainDrop.y);
+			}
 		batch.end();//start drawing
 
 		if(Gdx.input.isTouched()){
@@ -76,5 +90,42 @@ public class Drop extends ApplicationAdapter {
 			camera.unproject(touchPos);//transform coordinates to our camera's coordinate system
 			bucket.x = touchPos.x - bucket.getWidth()/2;
 		}
+
+		if(TimeUtils.nanoTime() - lastDropTime > 1000000000)//every one second drop a rain drop
+			spawnRainDrop();
+
+		//move all rainDrops at a rate 200 pixels/second
+		Iterator<Rectangle> iter = rainDrops.iterator();
+		while(iter.hasNext()){
+			Rectangle rainDrop = iter.next();
+			rainDrop.y -= 200 * Gdx.graphics.getDeltaTime();
+
+			if(rainDrop.overlaps(bucket)) {//if drop in the bucket
+				dropSound.play();
+				iter.remove();
+			}else if(rainDrop.y + dropImage.getHeight() < 0) {
+				iter.remove();
+			}
+		}
 	}
+
+	@Override
+	public void dispose(){
+		dropImage.dispose();
+		bucketImage.dispose();
+		dropSound.dispose();
+		backgroundMusic.dispose();
+		batch.dispose();
+	}
+
+	private void spawnRainDrop(){
+		Rectangle rainDrop = new Rectangle();
+		rainDrop.x = MathUtils.random(0 , cameraWidth - dropImage.getWidth());
+		rainDrop.y = cameraHeight;
+		rainDrop.width = dropImage.getWidth();
+		rainDrop.height = dropImage.getHeight();
+		rainDrops.add(rainDrop);
+		lastDropTime = TimeUtils.nanoTime();
+	}
+
 }

@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
@@ -32,9 +33,13 @@ public class GameScreen implements Screen {
 
     private Vector3 touchPos = new Vector3();
 
+    private String toWrite;
 
     public GameScreen(final Drop gam) {
+        toWrite = new String("");
         game = gam;
+
+        Gdx.input.setInputProcessor(new GestureDetector(new MyGestureListener(this)));
 
         //creating the camera
         camera = new OrthographicCamera();
@@ -51,6 +56,10 @@ public class GameScreen implements Screen {
 
     }
 
+    public void setToWrite(String s) {
+        toWrite = s;
+    }
+
     @Override
     public void render (float delta) {
         Gdx.gl.glClearColor(0, 0, 0.2f, 1);//dark blue
@@ -62,6 +71,7 @@ public class GameScreen implements Screen {
         game.batch.setProjectionMatrix(camera.combined);//use the camera's coordinate sys
         game.batch.begin();//start a new batch
             game.batch.draw(minionImage , minion.getX() , minion.getY());
+            game.font.draw(game.batch , toWrite , 100 , 100);
         game.batch.end();//start drawing
 
         if(Gdx.input.isTouched()){
